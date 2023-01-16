@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pc-deployment
+  namespace: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: golang-web-app
+  template:
+    metadata:
+      labels:
+        app: golang-web-app
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: golang-web-app
+          image: harbor.technical.icu/wish/golang-web-app:latest
+          imagePullPolicy: Always
+          env:
+            - name: "PORT"
+              valueFrom:
+                configMapKeyRef:
+                  name: golang-web-app-config
+                  key: port
+            - name: "DB_HOST"
+              valueFrom:
+                configMapKeyRef:
+                  name: golang-web-app-config
+                  key: db_host
+                  optional: false # same as default
+            - name: "DB_PORT"
+              valueFrom:
+                configMapKeyRef:
+                  name: golang-web-app-config
+                  key: db_port
+            - name: "DB_USERNAME"
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-config
+                  key: username
+            - name: "DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-config
+                  key: password
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-config
+  namespace: dev
+  labels:
+    app: golang-web-app
+type: Opaque
+data:
+  username: cG9zdGdyZXM=
+  password: VVFLeDRtc2dVag==
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: golang-web-app-config
+  namespace: dev
+  labels:
+    app: golang-web-app
+data:
+  port: "8080"
+  db_host: "wish-postgres-postgresql.default.svc.cluster.local"
+  db_port: "5432"
