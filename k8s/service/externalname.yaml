@@ -1,0 +1,11 @@
+# ExternalName类型的Service用于引入集群外部的服务，
+# 它通过externalName属性指定外部一个服务的地址，
+# 然后在集群内部访问此service就可以访问到外部的服务了。
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-externalname
+  namespace: dev
+spec:
+  type: ExternalName # service类型
+  externalName: www.baidu.com #改成ip地址也可以

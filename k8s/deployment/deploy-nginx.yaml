@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: dev
+  labels: #标签
+    app: nginx
+spec:
+  replicas: 3
+  revisionHistoryLimit: 3 # 保留多少个历史版本，方便回滚
+  paused: false # false表示当deployment创建成功时立即运行pod，默认是false
+  # 标签选择器 匹配规则
+  selector:
+    matchLabels:
+      run: nginx
+  # 模板，当副本数量不足时，会根据下面的模板创建Pod副本
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      containers:
+        - image: nginx:latest
+          name: nginx
+          ports:
+            - containerPort: 80
+              protocol: TCP
+  # 更新策略
+  strategy:
+    type: RollingUpdate # 滚动更新策略
+    rollingUpdate:
+      maxPurge: 25%
+      maxUnavailable: 25%
